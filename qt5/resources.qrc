@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/files">
+        <file>dataset_1629.csv</file>
+        <file>logo.jpg</file>
+    </qresource>
+</RCC>
