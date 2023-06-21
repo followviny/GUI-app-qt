@@ -1,6 +1,4 @@
 #include "datadialog.h"
-
-#include "datadialog.h"
 #include <QFormLayout>
 #include <QPushButton>
 #include <QDialogButtonBox>
@@ -17,23 +15,26 @@ static bool CheckNetworthPattern(const QString& str)
 DataDialog::DataDialog(const QString& option_name, Command cmd, const std::set<QString>& available_names, QWidget *parent)
     : QDialog(parent), available_names(available_names), cmd(cmd)
 {
-    setWindowTitle(option_name);
-
     auto formLayout = new QFormLayout(this);
 
     QStringList fields = {"name", "networth", "age", "country", "source", "industry"};
-    if (cmd == DEL) {
+    if (cmd == DEL)
+    {
         fields.resize(1);
     }
-    for (int i = 0; i < fields.size(); ++i) {
+    for (int i = 0; i < fields.size(); ++i)
+    {
         lineEdits.push_back(new QLineEdit(this));
         formLayout->addRow(fields[i], lineEdits[i]);
-        if (fields[i] == "age") {
+        if (fields[i] == "age")
+        {
             lineEdits[i]->setValidator(new QRegularExpressionValidator(QRegularExpression("\\d+"), this));
         }
+        else if (fields[i] == "name" || fields[i] == "country" || fields[i] == "source" || fields[i] == "industry")
+        {
+            lineEdits[i]->setValidator(new QRegularExpressionValidator(QRegularExpression("[^0-9]*"), this));
+        }
     }
-
-
 
     auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     formLayout->addWidget(buttonBox);
@@ -45,7 +46,8 @@ DataDialog::DataDialog(const QString& option_name, Command cmd, const std::set<Q
 QStringList DataDialog::getData() const
 {
     QStringList result;
-    for (const auto& lineEdit : lineEdits) {
+    for (const auto& lineEdit : lineEdits)
+    {
         result << lineEdit->text();
     }
     return result;
@@ -54,43 +56,62 @@ QStringList DataDialog::getData() const
 void DataDialog::validateInput()
 {
     int cnt = 0;
-    for (const auto& lineEdit : lineEdits) {
-        if (lineEdit->text().isEmpty()) {
+
+    for (const auto& lineEdit : lineEdits)
+    {
+        if (lineEdit->text().trimmed().isEmpty())
+        {
             QMessageBox::critical(this, "Error", "All fields must be filled!");
             return;
         }
     }
-    if (cmd != DEL) {
-        if (!CheckNetworthPattern(lineEdits[1]->text())) {
+    if (cmd != DEL)
+    {
+        if (!CheckNetworthPattern(lineEdits[1]->text()))
+        {
             QMessageBox::critical(this, "Error", "networth does not match pattern `$<float> B`, e.g. `$107 B`, `$67.3 B`");
             return;
         }
         bool ok;
         int age = lineEdits[2]->text().toInt(&ok);
-        if (!ok || age < 0 || age > 100) {
+        if (!ok || age < 0 || age > 100)
+        {
             QMessageBox::critical(this, "Error", "Age must be a number between 0 and 100.");
             return;
         }
-
     }
-    if (cmd == EDIT) {
-        if (!available_names.count(lineEdits[0]->text())) {
-            QMessageBox::critical(this, "Error", "No such person.");
-            return;
-        }
-    } else if (cmd == ADD){
-        if (available_names.count(lineEdits[0]->text())) {
+
+    else if (cmd == ADD)
+    {
+        if (available_names.count(lineEdits[0]->text()))
+        {
             QMessageBox::critical(this, "Error", "Such a person already exists.");
+
             return;
         }
-    } else {
-        if (!available_names.count(lineEdits[0]->text())) {
+    }
+    else
+    {
+        if (!available_names.count(lineEdits[0]->text()))
+        {
             QMessageBox::critical(this, "Error", "No such person.");
             return;
         }
     }
-
-
 
     accept();
+}
+
+
+void DataDialog::setData(const QStringList& rowData)
+{
+    for (int i = 0; i < lineEdits.size(); ++i)
+    {
+        lineEdits[i]->setText(rowData[i]);
+    }
+}
+
+void DataDialog::setDisableNameField(bool disable)
+{
+    lineEdits[0]->setEnabled(!disable);
 }

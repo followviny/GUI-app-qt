@@ -3,27 +3,25 @@
 
 #include <QDialog>
 
-namespace Ui {
-class authorize;
+namespace Ui
+{
+class Authorize;
 }
 
-class authorize : public QDialog
+class Authorize : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit authorize(QWidget *parent = nullptr);
-    ~authorize();
+    explicit Authorize(QWidget *parent = nullptr);
+    ~Authorize();
 
     bool isAuthorized() const;
 
-private slots:
-    void on_okButton_clicked();
-
-    void on_checkBox_stateChanged(int arg1);
-
 private:
-    Ui::authorize *ui;
+    void onOkButtonClicked();
+    void onCheckBoxStateChanged(int arg1);
+    Ui::Authorize *ui;
     bool authorized;
 };
 

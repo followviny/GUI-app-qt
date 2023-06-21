@@ -22,6 +22,8 @@ private:
     Ui::MainWindow *ui;
     CSVTable* model;
 
+
+
     void onAddButtonClicked();
     void onEditButtonClicked();
     void onDelButtonClicked();
@@ -30,7 +32,8 @@ private:
     void onSearchButtonClicked();
     void showLogoDialog();
     void inSortChanged(const QString& item);
-    bool table_loaded_{false};
+    bool tableLoaded{false};
     LogoWidget* logoWidget;
 };
 #endif // MAINWINDOW_H
+

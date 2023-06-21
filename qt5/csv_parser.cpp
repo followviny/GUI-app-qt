@@ -1,9 +1,9 @@
 #include "csv_parser.h"
-
 #include <QFile>
 #include <exception>
 #include <QTextStream>
 #include <QResource>
+#include <QDebug>
 
 static QStringList ParseLine(const QString& line)
 {
@@ -11,13 +11,19 @@ static QStringList ParseLine(const QString& line)
     QString value;
     bool inside = false;
 
-    for (const auto& c : line) {
-        if (c == '\"') {
+    for (const auto& c : line)
+    {
+        if (c == '\"')
+        {
             inside = !inside;
-        } else if (c == ',' && !inside) {
+        }
+        else if (c == ',' && !inside) //finished parsing a value
+        {
             result.append(value);
             value.clear();
-        } else {
+        }
+        else
+        {
             value += c;
         }
     }
@@ -28,21 +34,22 @@ static QStringList ParseLine(const QString& line)
     return result;
 }
 
-std::vector<QStringList> parseFile(const QString& fname) {
+std::vector<QStringList> parseFile(const QString& fname)
+{
     QFile file(fname);
 
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
         throw std::runtime_error("Failed to open file.");
     }
 
     std::vector<QStringList> result;
-    QTextStream in(&file);
+    QTextStream stream(&file);
 
-    while (!in.atEnd())
+    while (!stream.atEnd())
     {
-        result.emplace_back(ParseLine(in.readLine()));
+        result.emplace_back(ParseLine(stream.readLine())); //vect added to result
     }
-
     file.close();
     return result;
 }

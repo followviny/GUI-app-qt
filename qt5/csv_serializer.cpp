@@ -20,3 +20,4 @@ void SaveCSV(const QString& fname, const std::vector<QStringList> data)
         file.close();
     }
 }
+

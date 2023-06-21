@@ -10,7 +10,8 @@ class DataDialog : public QDialog
     Q_OBJECT
 
 public:
-    enum Command {
+    enum Command
+    {
        ADD,
        EDIT,
        DEL
@@ -19,6 +20,9 @@ public:
     ~DataDialog() { for (const auto& ptr : lineEdits) delete ptr;}
 
     QStringList getData() const;
+    void setData(const QStringList& data);
+    void setDisableNameField(bool disable);
+
 
 private slots:
     void validateInput();

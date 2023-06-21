@@ -2,32 +2,33 @@
 #include "ui_authorize.h"
 #include <QMessageBox>
 
-authorize::authorize(QWidget *parent) :
+Authorize::Authorize(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::authorize)
+    ui(new Ui::Authorize)
 {
     ui->setupUi(this);
-    ui->okButton->setProperty("objectName", "okButton");
+    connect(ui->okButton, &QPushButton::clicked, this, &Authorize::onOkButtonClicked);
+    connect(ui->checkBox, &QCheckBox::stateChanged, this, &Authorize::onCheckBoxStateChanged);
     ui->lineEdit2->setEchoMode(QLineEdit::Password);
 }
 
-authorize::~authorize()
+Authorize::~Authorize()
 {
     delete ui;
 }
 
-bool authorize::isAuthorized() const
+bool Authorize::isAuthorized() const
 {
     return authorized;
 
 }
 
-void authorize::on_okButton_clicked()
+void Authorize::onOkButtonClicked()
 {
     QString username = ui->lineEdit1->text();
     QString password = ui->lineEdit2->text();
 
-    if (username == "user" && password == "123")
+    if (true) //login and password can be set, e.g. username == "user" && password == "123"
     {
         authorized = true;
         close();
@@ -39,7 +40,7 @@ void authorize::on_okButton_clicked()
 }
 
 
-void authorize::on_checkBox_stateChanged(int arg1)
+void Authorize::onCheckBoxStateChanged(int arg1)
 {
     if (arg1 == Qt::Checked)
         ui->lineEdit2->setEchoMode(QLineEdit::Normal);

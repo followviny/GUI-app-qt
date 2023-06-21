@@ -4,7 +4,8 @@
 #include <QWidget>
 #include <QPixmap>
 
-class LogoWidget : public QWidget {
+class LogoWidget : public QWidget
+{
     Q_OBJECT
 
 public:

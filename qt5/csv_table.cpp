@@ -6,18 +6,22 @@
 #include <QRegularExpression>
 #include "csv_serializer.h"
 
-CSVTable::CSVTable(const QString& csv_data_fname, QObject* parent) : QAbstractTableModel(parent), csv_data_fname_(csv_data_fname)
+CSVTable::CSVTable(const QString& csv_data_fname, QObject* parent) : QAbstractTableModel(parent), csvDataFname_(csv_data_fname)
 {
     std::vector<QStringList> csv;
-    try {
-        csv = parseFile(csv_data_fname_);
-    } catch (std::exception& e) {
+    try
+    {
+        csv = parseFile(csvDataFname_);
+    }
+    catch (std::exception& e)
+    {
         QMessageBox::critical(nullptr, "An error occurred", e.what());
         return;
     }
 
     header_ = csv[0];
-    for (int i = 1; i < csv.size(); ++i) {
+    for (int i = 1; i < csv.size(); ++i)
+    {
         data_.push_back(csv[i]);
     }
 
@@ -25,13 +29,11 @@ CSVTable::CSVTable(const QString& csv_data_fname, QObject* parent) : QAbstractTa
 
 int CSVTable::rowCount(const QModelIndex& parent) const
 {
-    Q_UNUSED(parent);
     return data_.size();
 }
 
 int CSVTable::columnCount(const QModelIndex& parent) const
 {
-    Q_UNUSED(parent);
     return header_.size();
 }
 
@@ -48,7 +50,8 @@ QVariant CSVTable::data(const QModelIndex& index, int role) const
 
 QVariant CSVTable::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
+    {
         return header_[section];
     }
     return QVariant();
@@ -56,20 +59,23 @@ QVariant CSVTable::headerData(int section, Qt::Orientation orientation, int role
 
 void CSVTable::AddData(QStringList data, bool replace)
 {
+
     data.prepend("0");
-    if (replace) {
-        for (size_t i = 0; i < data_.size(); ++i) {
-            if (data_[i][1] == data[1]) {
+    if (replace)
+    {
+        for (size_t i = 0; i < data_.size(); ++i)
+        {
+            if (data_[i][1] == data[1])
+            {
                 data_[i] = data;
             }
         }
-    } else {
+    }
+    else
+    {
         int newRowIndex = rowCount();
-
         beginInsertRows(QModelIndex(), newRowIndex, newRowIndex);
-
         data_.push_back(data);
-
         endInsertRows();
     }
     Resort();
@@ -79,7 +85,8 @@ static float GetFloatFromNetworth(const QString& s)
 {
     const static QRegularExpression re("\\$(\\d+(\\.\\d+)?)[\\s]?B");
     QRegularExpressionMatch match = re.match(s);
-    if (match.hasMatch()) {
+    if (match.hasMatch())
+    {
         QString numberStr = match.captured(1);
         return numberStr.toFloat();
     }
@@ -91,7 +98,8 @@ void CSVTable::Resort()
     std::sort(data_.begin(), data_.end(), [](const QStringList& a, const QStringList& b) -> bool {
         return GetFloatFromNetworth(a[2]) > GetFloatFromNetworth(b[2]);
     });
-    for (size_t i = 0; i < data_.size(); ++i) {
+    for (size_t i = 0; i < data_.size(); ++i)
+    {
         data_[i][0] = QString::number(i + 1);
     }
     SortByCurrentSpecification();
@@ -99,9 +107,10 @@ void CSVTable::Resort()
 
 void CSVTable::DelData(const QString& name)
 {
-    for (size_t i = 0; i < data_.size(); ++i) {
-        if (data_[i][1] == name) {
-
+    for (size_t i = 0; i < data_.size(); ++i)
+    {
+        if (data_[i][1] == name)
+        {
             beginRemoveRows(QModelIndex(), i, i);
             data_.erase(data_.begin() + i);
             endRemoveRows();
@@ -122,26 +131,33 @@ std::set<QString> CSVTable::GetNames()
 
 void CSVTable::SetSortSpecification(const QString& item)
 {
-    sort_specification_ = item;
+    sortSpecification_ = item;
 }
 
 void CSVTable::SortByCurrentSpecification()
 {
-    if (sort_specification_ == "networth high to low") {
+    if (sortSpecification_ == "networth high to low")
+    {
         std::sort(data_.begin(), data_.end(), [](const QStringList& a, const QStringList& b) -> bool {
             return GetFloatFromNetworth(a[2]) > GetFloatFromNetworth(b[2]);
         });
-    } else if (sort_specification_ == "networth low to high")  {
+    }
+    else if (sortSpecification_ == "networth low to high")
+    {
         std::sort(data_.begin(), data_.end(), [](const QStringList& a, const QStringList& b) -> bool {
             return GetFloatFromNetworth(a[2]) < GetFloatFromNetworth(b[2]);
         });
-    } else if (sort_specification_ == "age high to low") {
+    }
+    else if (sortSpecification_ == "age high to low")
+    {
         std::sort(data_.begin(), data_.end(), [](const QStringList& a, const QStringList& b) -> bool {
-            return a[3] > b[3];
+            return a[3].toInt() > b[3].toInt();
         });
-    } else if (sort_specification_ == "age low to high") {
+    }
+    else if (sortSpecification_ == "age low to high")
+    {
         std::sort(data_.begin(), data_.end(), [](const QStringList& a, const QStringList& b) -> bool {
-            return a[3] < b[3];
+            return a[3].toInt() < b[3].toInt();
         });
     }
     int rows = rowCount();
@@ -153,7 +169,9 @@ void CSVTable::SortByCurrentSpecification()
 
 void CSVTable::Save()
 {
-    SaveCSV(csv_data_fname_, data_);
+    SaveCSV(csvDataFname_, data_);
 }
+
+
 
 

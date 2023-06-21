@@ -18,19 +18,21 @@ public:
     void AddData(QStringList data, bool replace = false);
     void DelData(const QString& name);
     std::set<QString> GetNames();
-    static QStringList GetSortTypes() {
+    static QStringList GetSortTypes()
+    {
         return {"networth high to low", "networth low to high", "age high to low", "age low to high"};
-    };
+    }
     void SetSortSpecification(const QString& item);
     void SortByCurrentSpecification();
     void Save();
+
 
 private:
     void Resort();
     std::vector<QStringList> data_;
     QStringList header_;
-    const QString csv_data_fname_;
-    QString sort_specification_{"networth high to low"};
+    const QString csvDataFname_;
+    QString sortSpecification_{"networth high to low"};
 };
 
 #endif // CSV_TABLE_H

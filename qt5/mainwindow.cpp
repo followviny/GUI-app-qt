@@ -17,18 +17,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     hide();
 
-    authorize authWindow;
+    Authorize authWindow;
     authWindow.exec();
 
     if (authWindow.isAuthorized())
     {
         show();
-
     }
     else
     {
         QApplication::quit();
     }
+
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     connect(ui->addButton, &QPushButton::clicked, this, &MainWindow::onAddButtonClicked);
@@ -38,11 +38,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::onSaveTableClicked);
     connect(ui->searchButton, &QPushButton::clicked, this, &MainWindow::onSearchButtonClicked);
 
-
-
     QStringList items = CSVTable::GetSortTypes();
     ui->comboBox->addItems(items);
     ui->comboBox->setCurrentIndex(0);
+
     connect(ui->comboBox, &QComboBox::currentTextChanged, this, &MainWindow::inSortChanged);
 
     QMenu* helpMenu = menuBar()->addMenu(tr("Help"));
@@ -63,23 +62,28 @@ MainWindow::~MainWindow()
 
 void MainWindow::onAddButtonClicked()
 {
-    if (!table_loaded_) {
+    if (!tableLoaded)
+    {
         return;
     }
 
     auto dialog = new DataDialog("Add person", DataDialog::ADD, model->GetNames(), this);
 
-    if (dialog->exec() == QDialog::Accepted) {
+    while (dialog->exec() == QDialog::Accepted)
+    {
         auto data = dialog->getData();
         QString name = data[0];
 
-        if (model->GetNames().count(name)) {
+        if (model->GetNames().count(name))
+        {
             QMessageBox::critical(this, "Error", "A person with the same name already exists.");
-        } else {
+        }
+        else
+        {
             model->AddData(data);
+            break;
         }
     }
-
     dialog->deleteLater();
 
 }
@@ -87,12 +91,33 @@ void MainWindow::onAddButtonClicked()
 
 void MainWindow::onEditButtonClicked()
 {
-    if (!table_loaded_) {
+    if (!tableLoaded)
+    {
         return;
     }
     auto dialog = new DataDialog("Edit person", DataDialog::EDIT, model->GetNames(), this);
 
-    if (dialog->exec() == QDialog::Accepted) {
+    QModelIndexList selectedIndexes = ui->tableView->selectionModel()->selectedIndexes();
+    if ((selectedIndexes.isEmpty()) || (selectedIndexes.size() > 1))
+    {
+        QMessageBox::information(this, "No selection", "Please select a person to edit.");
+        dialog->deleteLater();
+        return;
+    }
+
+    int selectedRow = selectedIndexes.first().row();
+    QStringList rowData;
+    for (int column = 1; column < model->columnCount(); ++column)
+    {
+        QModelIndex index = model->index(selectedRow, column);
+        QString data = model->data(index).toString();
+        rowData.append(data);
+    }
+
+    dialog->setData(rowData);
+    dialog->setDisableNameField(true);
+    if (dialog->exec() == QDialog::Accepted)
+    {
         auto data = dialog->getData();
         model->AddData(data, true);
     }
@@ -100,13 +125,17 @@ void MainWindow::onEditButtonClicked()
     dialog->deleteLater();
 }
 
-void MainWindow::onDelButtonClicked() {
-    if (!table_loaded_) {
+
+void MainWindow::onDelButtonClicked()
+{
+    if (!tableLoaded)
+    {
         return;
     }
     auto dialog = new DataDialog("Delete person", DataDialog::DEL, model->GetNames(), this);
 
-    if (dialog->exec() == QDialog::Accepted) {
+    if (dialog->exec() == QDialog::Accepted)
+    {
         auto data = dialog->getData();
         model->DelData(data[0]);
     }
@@ -114,37 +143,52 @@ void MainWindow::onDelButtonClicked() {
     dialog->deleteLater();
 }
 
-void MainWindow::onLoadTableClicked() {
-    if (table_loaded_) {
+void MainWindow::onLoadTableClicked()
+{
+    if (tableLoaded)
+    {
         return;
     }
-    table_loaded_ = true;
-    model = new CSVTable(":/files/dataset_1629.csv");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open CSV File", "", "CSV Files (*.csv)");
+    if (!fileName.isEmpty())
+    {
+        model = new CSVTable(fileName);
+        ui->tableView->setModel(model);
+        tableLoaded = true;
+    }
+//    model = new CSVTable(":/files/dataset_1629.csv");
 
     ui->tableView->setModel(model);
 }
 
-void MainWindow::onSaveTableClicked() {
-    if (!table_loaded_) {
+void MainWindow::onSaveTableClicked()
+{
+    if (!tableLoaded)
+    {
         return;
     }
     QString fileName = QFileDialog::getSaveFileName(this, "Save Table", "", "CSV Files (*.csv)");
 
-    if (!fileName.isEmpty()) {
+    if (!fileName.isEmpty())
+    {
         QFile file(fileName);
 
-        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+        {
             QTextStream stream(&file);
 
             QStringList headerData;
-            for (int column = 0; column < model->columnCount(); ++column) {
+            for (int column = 0; column < model->columnCount(); ++column)
+            {
                 headerData.append(model->headerData(column, Qt::Horizontal).toString());
             }
             stream << headerData.join(",") << "\n";
 
-            for (int row = 0; row < model->rowCount(); ++row) {
+            for (int row = 0; row < model->rowCount(); ++row)
+            {
                 QStringList rowData;
-                for (int column = 0; column < model->columnCount(); ++column) {
+                for (int column = 0; column < model->columnCount(); ++column)
+                {
                     QModelIndex index = model->index(row, column);
                     QString data = model->data(index).toString();
                     rowData.append(data);
@@ -154,7 +198,8 @@ void MainWindow::onSaveTableClicked() {
 
             file.close();
             QMessageBox::information(this, "Saved", "The table has been saved successfully.");
-        } else {
+        } else
+        {
             QMessageBox::critical(this, "Error", "Please try again.");
         }
     }
@@ -176,7 +221,8 @@ void MainWindow::showLogoDialog()
 
 void MainWindow::inSortChanged(const QString& item)
 {
-    if (!table_loaded_) {
+    if (!tableLoaded)
+    {
         return;
     }
     model->SetSortSpecification(item);
@@ -187,12 +233,18 @@ void MainWindow::inSortChanged(const QString& item)
 
 void MainWindow::onSearchButtonClicked()
 {
-    if (!table_loaded_) {
+    if (!tableLoaded)
+    {
         return;
     }
-    QString searchName = ui->searchInput->text().toLower();
 
-    ui->tableView->clearSelection();
+
+    QString searchName = ui->searchInput->text().toLower().trimmed();
+
+    if (searchName.trimmed().isEmpty())
+    {
+        return;
+    }
 
     for (int row = 0; row < model->rowCount(); ++row)
     {
