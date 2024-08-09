@@ -7,4 +7,4 @@ Model-View-Controller (MVC).
 
 • Отчет по проектуи более подробное описание в файле reportpr
 
-<img src="interface.png" width=500>
+<div align="center"> <img src="interface.png" width=600>
